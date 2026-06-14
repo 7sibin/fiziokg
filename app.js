@@ -144,9 +144,17 @@
     );
   }
   function heroPhotoMarkup(tag = "Topla, stručna nega") {
+    // Real responsive image: fluidly fills the 4:5 slot via object-fit, loads
+    // eagerly (above the fold), and removes itself if the file is missing so the
+    // gradient placeholder shows. Add hero-800/1200/1600 variants + srcset later
+    // for resolution switching; a single hero.jpg already scales to any viewport.
     return (
       `<div class="photo hero__photo">` +
-      `<div class="photo__img" style="background-image:url('hero.jpg')"></div>` +
+      `<img class="photo__img" src="hero.jpg" ` +
+      `alt="Fizioterapeut radi sa pacijentom u toploj, stručnoj atmosferi" ` +
+      `sizes="(max-width: 880px) 90vw, 45vw" ` +
+      `loading="eager" fetchpriority="high" decoding="async" ` +
+      `onerror="this.remove()">` +
       `<div class="photo__grain"></div><span class="photo__tag">${tag}</span></div>`
     );
   }
