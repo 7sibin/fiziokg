@@ -213,18 +213,19 @@
     "C101 291 100 289 100 286 L100 16 Z";
 
   function bodyFigureMarkup(active) {
-    const zones = ZONE_KEYS.map((key) => {
+    const zones = ZONE_KEYS.map((key, i) => {
       const z = ZONES[key];
       const [x, y] = z.dot;
       const on = active === key;
       return (
         `<g class="zone${on ? " zone--on" : ""}" data-zone="${key}" role="button" tabindex="0" ` +
-        `aria-label="${z.label}" aria-pressed="${on}">` +
+        `style="--zd:${(i * 0.42).toFixed(2)}s" aria-label="${z.label}" aria-pressed="${on}">` +
         `<circle class="zone__hit" cx="${x}" cy="${y}" r="22"/>` +
         (on ? `<circle class="zone__glow" cx="${x}" cy="${y}" r="20" fill="url(#dotglow)"/>` : "") +
         (on ? `<circle class="zone__beat" cx="${x}" cy="${y}" r="9"/>` : "") +
+        `<circle class="zone__halo" cx="${x}" cy="${y}" r="13" fill="url(#dotglow)"/>` +
         `<circle class="zone__ring" cx="${x}" cy="${y}" r="9"/>` +
-        `<circle class="zone__dot" cx="${x}" cy="${y}" r="4.2"/></g>`
+        `<circle class="zone__dot" cx="${x}" cy="${y}" r="5"/></g>`
       );
     }).join("");
 
@@ -232,7 +233,7 @@
       `<svg class="bodysvg" viewBox="0 0 200 490" aria-label="Mapa tela" role="group">` +
       `<defs>` +
       `<linearGradient id="bodyfill" x1="0" y1="0" x2="0" y2="1">` +
-      `<stop offset="0" stop-color="#33532f"/><stop offset="1" stop-color="#1f3a26"/></linearGradient>` +
+      `<stop offset="0" stop-color="#5d8a6c"/><stop offset="0.5" stop-color="#41694b"/><stop offset="1" stop-color="#2c4b34"/></linearGradient>` +
       `<radialGradient id="dotglow" cx="0.5" cy="0.5" r="0.5">` +
       `<stop offset="0" stop-color="#9FE1CB" stop-opacity="0.55"/>` +
       `<stop offset="1" stop-color="#9FE1CB" stop-opacity="0"/></radialGradient></defs>` +
