@@ -148,6 +148,12 @@ img { display: block; max-width: 100%; }
   mix-blend-mode: multiply;
   z-index: 2;
 }
+/* real photo layer — sits over the gradient placeholder, under the warm tint.
+   If the image file is missing, this stays transparent and the placeholder shows. */
+.photo__img {
+  position: absolute; inset: 0; z-index: 1;
+  background-size: cover; background-position: center;
+}
 .photo__tag {
   position: absolute;
   left: 16px; bottom: 14px;

@@ -144,7 +144,11 @@
     );
   }
   function heroPhotoMarkup(tag = "Topla, stručna nega") {
-    return `<div class="photo hero__photo"><div class="photo__grain"></div><span class="photo__tag">${tag}</span></div>`;
+    return (
+      `<div class="photo hero__photo">` +
+      `<div class="photo__img" style="background-image:url('hero.jpg')"></div>` +
+      `<div class="photo__grain"></div><span class="photo__tag">${tag}</span></div>`
+    );
   }
 
   function heroMarkup() {
