@@ -2,29 +2,29 @@
    FizioKG — design tokens & base styles
    ============================================================ */
 :root {
-  /* Dark palette */
-  --bg-dark: #1A2E1A;
-  --surface-1: #243f24;
-  --surface-2: #2D4F2D;
-  --accent: #4A7C59;
-  --mint: #9FE1CB;
-  --mint-soft: #c4ecdc;
+  /* Dark palette (navy/blue brand) */
+  --bg-dark: #0D2134;
+  --surface-1: #16324C;
+  --surface-2: #1E3F5C;
+  --accent: #1C6BA0; /* deep azure → WCAG AA (≥4.5:1) for small text on light bg */
+  --mint: #88CFF2;   /* light azure highlight (was mint green) */
+  --mint-soft: #BCE4FB;
 
-  /* Light palette */
-  --bg-light: #F5F0E8;
-  --surface-light: #E8E0D0;
-  --surface-light-2: #efe9de;
+  /* Light palette (cool blue-grey to match navy brand) */
+  --bg-light: #EDF1F6;
+  --surface-light: #E0E7EE;
+  --surface-light-2: #E6EBF1;
 
   /* Text */
   --text-on-dark: #F5F0E8;
   --text-on-dark-dim: rgba(245, 240, 232, 0.62);
-  --text-on-light: #1A2E1A;
-  --text-on-light-dim: rgba(26, 46, 26, 0.6);
+  --text-on-light: #0D2134;
+  --text-on-light-dim: rgba(13, 33, 52, 0.72); /* navy ~6.1:1 on cream (WCAG AA) */
 
   /* Lines */
-  --line-on-dark: rgba(159, 225, 203, 0.16);
-  --line-on-dark-strong: rgba(159, 225, 203, 0.34);
-  --line-on-light: rgba(26, 46, 26, 0.14);
+  --line-on-dark: rgba(136, 207, 242, 0.16);
+  --line-on-dark-strong: rgba(136, 207, 242, 0.34);
+  --line-on-light: rgba(13, 33, 52, 0.14);
 
   /* Radii */
   --r-card: 14px;
@@ -33,7 +33,7 @@
   --r-pill: 999px;
 
   /* Type */
-  --serif: "Cormorant Garamond", Georgia, serif;
+  --serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
   --sans: "Inter", system-ui, -apple-system, sans-serif;
 
   /* Layout */
@@ -72,6 +72,19 @@ button { font-family: inherit; cursor: pointer; }
 img { display: block; max-width: 100%; }
 
 ::selection { background: var(--mint); color: var(--bg-dark); }
+
+/* ---- Visible keyboard focus (all interactive elements) ---- */
+:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 2px;
+}
+/* On light sections the mint ring is too pale — use the (AA) green instead */
+.section--light :focus-visible {
+  outline-color: var(--accent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  :focus-visible { transition: outline-offset .1s; }
+}
 
 /* ---- Layout helpers ---- */
 .section {
@@ -123,7 +136,7 @@ img { display: block; max-width: 100%; }
   white-space: nowrap;
 }
 .btn:active { transform: translateY(1px); }
-.btn--mint { background: var(--mint); color: #143018; }
+.btn--mint { background: var(--mint); color: #062338; }
 .btn--mint:hover { background: var(--mint-soft); transform: translateY(-2px); }
 .btn--outline { background: transparent; border-color: var(--line-on-dark-strong); color: var(--text-on-dark); }
 .btn--outline:hover { border-color: var(--mint); color: var(--mint); }
@@ -137,14 +150,14 @@ img { display: block; max-width: 100%; }
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(120% 90% at 70% 20%, rgba(159,225,203,0.18), transparent 55%),
-    linear-gradient(155deg, #34532f 0%, #243d22 48%, #1d3a2c 100%);
+    radial-gradient(120% 90% at 70% 20%, rgba(136,207,242,0.18), transparent 55%),
+    linear-gradient(155deg, #244F70 0%, #183A5A 48%, #143654 100%);
   isolation: isolate;
 }
 .photo::after {
   content: "";
   position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(214,160,90,0.12), rgba(26,46,26,0.32));
+  background: linear-gradient(180deg, rgba(214,160,90,0.12), rgba(13,33,52,0.32));
   mix-blend-mode: multiply;
   z-index: 2;
 }

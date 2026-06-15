@@ -41,15 +41,23 @@
     laser: (p) => ico({ ...p, inner: `<path d="M4 20L20 4"/><path d="M14 4h6v6"/><path d="M9 13l2 2"/><path d="M6.5 10.5l1.5 1.5"/>` }),
   };
 
-  /* ---------- wordmark ---------- */
+  /* ---------- wordmark ----------
+     Knee-joint emblem (femur condyles + tibia plateau + patella) inside a disc,
+     recreated as inline SVG from logo.jpg. Colors come from theme vars so it
+     adapts to the dark header/footer; the disc reads subtly on the navy bg. */
   function logoMarkup(onDark = true) {
     const ink = onDark ? "var(--text-on-dark)" : "var(--text-on-light)";
     return (
-      `<a href="#top" class="logo" aria-label="FizioKG" style="color:${ink}">` +
-      `<svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">` +
-      `<path d="M16 3c-4 3.4-4 7.2 0 10.6 4 3.4 4 7.2 0 10.6" stroke="var(--mint)" stroke-width="2" stroke-linecap="round" fill="none"/>` +
-      `<path d="M16 4.6c3.4 1 5 2.6 5 4.6M16 27.4c-3.4-1-5-2.6-5-4.6" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" fill="none"/>` +
-      `<circle cx="16" cy="16" r="2.1" fill="var(--mint)"/></svg>` +
+      `<a href="#top" class="logo" aria-label="FizioKG — fizioterapija" style="color:${ink}">` +
+      `<svg class="logo__mark" width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">` +
+      `<circle cx="16" cy="16" r="15" fill="var(--surface-1)" stroke="var(--line-on-dark-strong)" stroke-width="1"/>` +
+      `<g fill="var(--mint)">` +
+      `<rect x="11.2" y="3.5" width="4.2" height="9" rx="2.1"/>` +     /* femur (vertical) */
+      `<circle cx="13.3" cy="14" r="4.4"/>` +                          /* knee joint */
+      `<rect x="14.6" y="17.4" width="9" height="4.2" rx="2.1"/>` +    /* tibia (to the side) */
+      `</g>` +
+      `<ellipse cx="14.2" cy="12.8" rx="1.9" ry="2.4" fill="var(--mint-soft)"/>` + /* patella */
+      `</svg>` +
       `<span class="logo__txt">Fizio<span class="logo__kg">KG</span></span></a>`
     );
   }
@@ -57,32 +65,114 @@
   /* ============================================================
      TOP NAV
      ============================================================ */
+  // Single source of truth for nav links — shared by desktop nav + mobile drawer.
+  const NAV_LINKS = [
+    ["#navigator", "Gde vas boli"],
+    ["#terapije", "Terapije"],
+    ["#tim", "Tim"],
+    ["#kontakt", "Kontakt"],
+  ];
+
   function topNavMarkup() {
     return (
       `<header class="topnav" id="topnav">` +
       logoMarkup(true) +
       `<nav class="topnav__links">` +
-      `<a href="#navigator">Gde vas boli</a>` +
-      `<a href="#terapije">Terapije</a>` +
-      `<a href="#tim">Tim</a>` +
-      `<a href="#kontakt">Kontakt</a>` +
+      NAV_LINKS.map(([href, label]) => `<a href="${href}">${label}</a>`).join("") +
       `</nav>` +
       `<div class="topnav__cta">` +
-      `<a href="tel:+38134000000" class="topnav__phone" aria-label="Pozovite" style="color:var(--mint)">${UI.phone({ size: 18 })}</a>` +
-      `<a href="#kontakt" class="btn btn--mint">Zakaži pregled</a>` +
-      `</div></header>`
+      `<a href="tel:+38134000000" class="topnav__phone" aria-label="Pozovite nas telefonom" style="color:var(--mint)">${UI.phone({ size: 18 })}</a>` +
+      `<a href="#kontakt" class="btn btn--mint topnav__book">Zakaži pregled</a>` +
+      `<button type="button" class="navtoggle" id="navToggle" aria-label="Otvori meni" aria-expanded="false" aria-controls="mobileMenu">` +
+      `<span class="navtoggle__bars" aria-hidden="true"><span></span><span></span><span></span></span>` +
+      `</button>` +
+      `</div></header>` +
+      mobileMenuMarkup()
     );
+  }
+
+  function mobileMenuMarkup() {
+    return (
+      `<div class="mobnav" id="mobileMenu" aria-hidden="true">` +
+      `<div class="mobnav__backdrop" data-mobnav-close></div>` +
+      `<aside class="mobnav__drawer" role="dialog" aria-modal="true" aria-label="Navigacija">` +
+      `<nav class="mobnav__links">` +
+      NAV_LINKS.map(([href, label], i) =>
+        `<a href="${href}" style="--i:${i}">${label}</a>`
+      ).join("") +
+      `</nav>` +
+      `<a href="#kontakt" class="btn btn--mint mobnav__cta" style="--i:${NAV_LINKS.length}">Zakaži pregled ${UI.arrow({ size: 18, cls: "arr" })}</a>` +
+      `</aside></div>`
+    );
+  }
+
+  function wireMobileMenu() {
+    const toggle = $("#navToggle");
+    const menu = $("#mobileMenu");
+    if (!toggle || !menu) return;
+    const drawer = $(".mobnav__drawer", menu);
+
+    let open = false;
+    const setOpen = (next) => {
+      if (next === open) return;
+      open = next;
+      menu.classList.toggle("is-open", open);
+      toggle.classList.toggle("is-open", open);
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-label", open ? "Zatvori meni" : "Otvori meni");
+      menu.setAttribute("aria-hidden", String(!open));
+      document.body.classList.toggle("nav-locked", open);
+      if (open) {
+        const first = $(".mobnav__links a", menu);
+        if (first) first.focus();
+      } else {
+        toggle.focus();
+      }
+    };
+
+    toggle.addEventListener("click", () => setOpen(!open));
+
+    // Close on backdrop click, on any link/CTA click (then let the anchor scroll),
+    // and on Escape. Links keep their native #hash jump to the right section.
+    menu.addEventListener("click", (e) => {
+      if (e.target.closest("[data-mobnav-close]")) { setOpen(false); return; }
+      if (e.target.closest(".mobnav__links a, .mobnav__cta")) setOpen(false);
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && open) setOpen(false);
+    });
+
+    // If the viewport grows past the mobile breakpoint while open, tidy up.
+    window.matchMedia("(min-width: 881px)").addEventListener("change", (e) => {
+      if (e.matches) setOpen(false);
+    });
   }
 
   /* ============================================================
      HERO (variant A — breathing motion line + kinetic title)
      ============================================================ */
+  /* ---------- clinic figures: single source of truth ----------
+     Every stat shown on the site (hero, results, prose) derives from here so the
+     numbers can never drift apart again. `years` is computed from the founding
+     year, so "15 godina" stays correct without anyone editing it. */
+  const CLINIC = {
+    founded: 2011,
+    patients: 1200, // shown with a "+" suffix
+    therapies: 6, // must match the number of entries in THERAPIES below
+    get years() { return new Date().getFullYear() - this.founded; },
+  };
+
   const HERO_COPY = {
     eyebrow: "Fizioterapija · Kragujevac",
     sub: "Stručna fizioterapija i rehabilitacija u Kragujevcu. Vraćamo vas pokretu — bez bola, korak po korak.",
     primary: "Zakaži pregled",
     secondary: "Istraži terapije",
-    stats: [["1200+", "pacijenata"], ["15", "godina iskustva"], ["12", "vrsta terapija"]],
+    stats: [
+      [`${CLINIC.patients}+`, "pacijenata"],
+      [`${CLINIC.years}`, "godina iskustva"],
+      [`${CLINIC.therapies}`, "vrsta terapija"],
+    ],
   };
 
   function motionLineMarkup() {
@@ -245,10 +335,10 @@
       `<svg class="bodysvg" viewBox="0 0 200 490" aria-label="Mapa tela" role="group">` +
       `<defs>` +
       `<linearGradient id="bodyfill" x1="0" y1="0" x2="0" y2="1">` +
-      `<stop offset="0" stop-color="#5d8a6c"/><stop offset="0.5" stop-color="#41694b"/><stop offset="1" stop-color="#2c4b34"/></linearGradient>` +
+      `<stop offset="0" stop-color="#4A88AE"/><stop offset="0.5" stop-color="#2C6088"/><stop offset="1" stop-color="#173F5E"/></linearGradient>` +
       `<radialGradient id="dotglow" cx="0.5" cy="0.5" r="0.5">` +
-      `<stop offset="0" stop-color="#9FE1CB" stop-opacity="0.55"/>` +
-      `<stop offset="1" stop-color="#9FE1CB" stop-opacity="0"/></radialGradient></defs>` +
+      `<stop offset="0" stop-color="#88CFF2" stop-opacity="0.55"/>` +
+      `<stop offset="1" stop-color="#88CFF2" stop-opacity="0"/></radialGradient></defs>` +
       `<g class="bodyform"><circle cx="100" cy="40" r="25"/>` +
       `<path d="${HALF}"/><path d="${HALF}" transform="matrix(-1 0 0 1 200 0)"/></g>` +
       `<path class="spine" d="M100 66 V 462"/>` +
@@ -375,8 +465,8 @@
       [40, 100, 160, 220].map((y) => `<line class="chart-grid" x1="40" y1="${y}" x2="448" y2="${y}"/>`).join("") +
       `<path class="chartline chartline--move" pathLength="100" d="${pathOf(MOVE)}"/>` +
       `<path class="chartline chartline--pain chartline--2" pathLength="100" d="${pathOf(PAIN)}"/>` +
-      CHART_X.map((x, i) => `<circle class="chartdot chartdot--pain" cx="${x}" cy="${PAIN[i]}" r="3.4" style="--i:${i}"/>`).join("") +
-      CHART_X.map((x, i) => `<circle class="chartdot chartdot--move" cx="${x}" cy="${MOVE[i]}" r="3.4" style="--i:${i}"/>`).join("") +
+      CHART_X.map((x, i) => `<circle class="chartdot chartdot--pain" cx="${x}" cy="${PAIN[i]}" r="5" style="--i:${i}"/>`).join("") +
+      CHART_X.map((x, i) => `<circle class="chartdot chartdot--move" cx="${x}" cy="${MOVE[i]}" r="5" style="--i:${i}"/>`).join("") +
       WK.map((w, i) => `<text class="chart-x" x="${CHART_X[i]}" y="258" text-anchor="middle">Ned. ${w}</text>`).join("") +
       `</svg>` +
       `<div class="chart-foot">` +
@@ -387,9 +477,9 @@
   }
 
   const RSTATS = [
-    { n: 1200, suffix: "+", label: "zadovoljnih pacijenata", sub: "od 2011. do danas" },
-    { n: 15, suffix: "", label: "godina iskustva", sub: "u Kragujevcu" },
-    { n: 12, suffix: "", label: "vrsta terapija", sub: "pod jednim krovom" },
+    { n: CLINIC.patients, suffix: "+", label: "zadovoljnih pacijenata", sub: `od ${CLINIC.founded}. do danas` },
+    { n: CLINIC.years, suffix: "", label: "godina iskustva", sub: "u Kragujevcu" },
+    { n: CLINIC.therapies, suffix: "", label: "vrsta terapija", sub: "pod jednim krovom" },
   ];
   const RTESTI = [
     { q: "Posle tri nedelje terapije išijas je nestao. Prvi put posle godinu dana spavam bez bolova.",
@@ -414,7 +504,7 @@
       `<blockquote>${t.q}</blockquote>` +
       `<div class="testi-card__res"><span class="testi-card__resic">${UI.check({ size: 15, sw: 2.4 })}</span>${t.res}</div>` +
       `<figcaption class="testi-foot"><span class="avatar">${t.a}</span>` +
-      `<div><b>${t.n}</b><span class="stars">${[0, 1, 2, 3, 4].map(() => UI.star({ size: 13, sw: 0 })).join("")}</span></div>` +
+      `<div><b>${t.n}</b><span class="stars" role="img" aria-label="Ocena 5 od 5 zvezdica">${[0, 1, 2, 3, 4].map(() => UI.star({ size: 13, sw: 0 })).join("")}</span></div>` +
       `</figcaption></figure>`
     ).join("");
 
@@ -422,7 +512,7 @@
       `<section class="section section--light" id="rezultati"><div class="wrap">` +
       `<div class="sec-head reveal"><span class="eyebrow">Dokazani rezultati</span>` +
       `<h2 class="h-sec">Oporavak koji se <em>meri</em></h2>` +
-      `<p>Petnaest godina rada sa pacijentima svih uzrasta — od sportskih povreda do hronične rehabilitacije. Brojke koje stoje iza svakog plana.</p></div>` +
+      `<p>${CLINIC.years} godina rada sa pacijentima svih uzrasta — od sportskih povreda do hronične rehabilitacije. Brojke koje stoje iza svakog plana.</p></div>` +
       `<div class="results-feature">${recoveryChartMarkup()}` +
       `<div class="results-stats reveal" style="--d:120ms">${stats}</div></div>` +
       `<div class="testi-row">${testi}</div>` +
@@ -506,7 +596,7 @@
     return (
       `<section class="section section--dark" id="terapije"><div class="wrap">` +
       `<div class="sec-head reveal"><span class="eyebrow">Naše terapije</span>` +
-      `<h2 class="h-sec">Dvanaest pristupa, <em>jedan cilj</em></h2>` +
+      `<h2 class="h-sec">Šest pristupa, <em>jedan cilj</em></h2>` +
       `<p>Svaki plan kombinujemo prema vašoj dijagnozi — od akutne faze do potpunog povratka funkciji.</p></div>` +
       `<div class="ther-panels reveal" id="therPanels">${panels}</div>` +
       `</div></section>`
@@ -820,6 +910,7 @@
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
 
+    wireMobileMenu();
     wireNavigator();
     wireTherapies();
     wireBooking();
